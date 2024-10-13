@@ -55,21 +55,14 @@ static const char *__dedent_get_next_line(const char *text) {
 	return text;
 }
 
-static size_t __dedent_strcpy(char *output_buffer, size_t output_size, const char *text, size_t text_size) {
-	// avoid copying data when running inplace, just return text length
-	if (output_buffer == text) {
-		return strlen(text);
-	}
-
-	// copy all bytes from text to output_buffer, respecting size limits
-	if (text_size < output_size) {
-		text_size = output_size;
-	}
-	int i;
-	for (i = 0; text[i] && i < text_size; i++) {
-		output_buffer[i] = text[i];
-	}
-	return i;
+static const char *__dedent_get_next_line_with_info(const char *text, size_t *content_size, size_t *newlines_size) {
+	// skip whitespace
+	text += strspn(text, " \t");
+	// skip content
+	text += (*content_size = strcspn(text, "\r\n"));
+	// skip new lines
+	text += (*newlines_size = strspn(text, "\r\n"));
+	return text;
 }
 
 size_t get_indent_size(const char *line) {
@@ -157,21 +150,17 @@ size_t dedentn(const char *text, size_t text_size, char *output_buffer, size_t o
 	size_t common_indent_size;
 	const char *common_indent = get_common_indentn(text, text_size, &common_indent_size);
 
-	// if there's no common indent, just copy `text` into `output_buffer`
-	if (common_indent_size == 0) {
-		return __dedent_strcpy(output_buffer, output_size, text, text_size);
-	}
-
-	// copy data, skipping indents
+	// copy data, skipping common indent and removing indentation from empty lines
 	const char *line = text;
 	size_t total_copied_bytes = 0;
-	for (size_t remaining_text = text_size; *line != '\0' && remaining_text; ) {
+	for (size_t remaining_text = text_size; output_size > 0 && remaining_text > 0 && *line != '\0'; ) {
 		// here it is: skip the common indent!
-		if (common_indent_size && strncmp(line, common_indent, common_indent_size) == 0) {
+		if (common_indent_size > 0 && strncmp(line, common_indent, common_indent_size) == 0) {
 			line += common_indent_size;
 		}
 
-		const char *next_line = __dedent_get_next_line(line);
+		size_t content_size, newlines_size;
+		const char *next_line = __dedent_get_next_line_with_info(line, &content_size, &newlines_size);
 		size_t copy_size = next_line - line;
 		if (copy_size > output_size) {
 			copy_size = output_size;
@@ -179,11 +168,25 @@ size_t dedentn(const char *text, size_t text_size, char *output_buffer, size_t o
 		if (copy_size > remaining_text) {
 			copy_size = remaining_text;
 		}
-		strncpy(output_buffer, line, copy_size);
-		output_buffer += copy_size;
-		output_size -= copy_size;
+		// line has some content, copy it over
+		if (content_size > 0) {
+			strncpy(output_buffer, line, copy_size);
+			output_buffer += copy_size;
+			output_size -= copy_size;
+			total_copied_bytes += copy_size;
+		}
+		// empty line, skip any indentation but copy newline characters ('\r' and '\n')
+		else if (newlines_size > 0) {
+			strncpy(output_buffer, line + copy_size - newlines_size, newlines_size);
+			output_buffer += newlines_size;
+			output_size -= newlines_size;
+			total_copied_bytes += newlines_size;
+		}
+		// EOL, bail out
+		else {
+			break;
+		}
 		remaining_text -= copy_size;
-		total_copied_bytes += copy_size;
 		line = next_line;
 	}
 
