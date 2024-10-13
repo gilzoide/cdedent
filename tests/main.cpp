@@ -2,8 +2,7 @@
 #include <iostream>
 #include <ostream>
 
-#define DEDENT_IMPLEMENTATION
-#include "../dedent.h"
+#include "../cdedent.hpp"
 
 #define test(text1, text2) \
 	{ \

@@ -1,6 +1,3 @@
-/**
- * @file dedent.h  Dedent functionality for removing common leading whitespace from every line in text.
- */
 /*
  * This is free and unencumbered software released into the public domain.
  *
@@ -27,51 +24,10 @@
  *
  * For more information, please refer to <http://unlicense.org/>
  */
-#ifndef __DEDENT_H__
-#define __DEDENT_H__
-
-#include <limits.h>
-#include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif //  __cplusplus
-
-size_t get_indent_size(const char *line);
-const char *get_common_indent(const char *text, size_t *out_common_indent_size);
-const char *get_common_indentn(const char *text, size_t text_size, size_t *out_common_indent_size);
-
-size_t dedent(const char *text, char *output_buffer, size_t output_size);
-size_t dedentn(const char *text, size_t text_size, char *output_buffer, size_t output_size);
-
-size_t dedent_inplace(char *text);
-size_t dedentn_inplace(char *text, size_t text_size);
-
-#ifdef __cplusplus
-}
-
-#include <string>
-
-std::string dedent(const char *ctext);
-std::string dedent(const char *ctext, size_t text_size);
-std::string dedent(const std::string& text);
-#ifdef __cpp_user_defined_literals
-std::string operator""_dedent(const char *ctext, size_t text_size);
-#endif // __cpp_user_defined_literals
-#ifdef __cpp_lib_string_view
-std::string dedent(std::string_view text);
-#endif // __cpp_lib_string_view
-#endif //  __cplusplus
-
-#endif // __DEDENT_H__
-
-
-#ifdef DEDENT_IMPLEMENTATION
-
-#ifdef __cplusplus
-extern "C" {
-#endif //  __cplusplus
+#include "cdedent.h"
 
 static const char *__dedent_get_next_line(const char *text) {
 	// skip content
@@ -89,6 +45,12 @@ static const char *__dedent_get_next_line_with_info(const char *text, size_t *co
 	// skip new lines
 	text += (*newlines_size = strspn(text, "\r\n"));
 	return text;
+}
+
+void __dedent_copy_bytes(char *dest, const char *src, size_t size) {
+	if (dest != src) {
+		memmove(dest, src, size);
+	}
 }
 
 size_t get_indent_size(const char *line) {
@@ -197,14 +159,14 @@ size_t dedentn(const char *text, size_t text_size, char *output_buffer, size_t o
 		}
 		// line has some content, copy it over
 		if (content_size > 0) {
-			strncpy(output_buffer, line, copy_size);
+			__dedent_copy_bytes(output_buffer, line, copy_size);
 			output_buffer += copy_size;
 			output_size -= copy_size;
 			total_copied_bytes += copy_size;
 		}
 		// empty line, skip any indentation but copy newline characters ('\r' and '\n')
 		else if (newlines_size > 0) {
-			strncpy(output_buffer, line + copy_size - newlines_size, newlines_size);
+			__dedent_copy_bytes(output_buffer, line + copy_size - newlines_size, newlines_size);
 			output_buffer += newlines_size;
 			output_size -= newlines_size;
 			total_copied_bytes += newlines_size;
@@ -231,38 +193,3 @@ size_t dedent_inplace(char *text) {
 size_t dedentn_inplace(char *text, size_t text_size) {
 	return dedentn(text, text_size, text, text_size);
 }
-
-#ifdef __cplusplus
-}
-
-std::string dedent(const char *ctext) {
-	return dedent(std::string(ctext));
-}
-
-std::string dedent(const char *ctext, size_t text_size) {
-	return dedent(std::string(ctext, text_size));
-}
-
-std::string dedent(const std::string& text) {
-	std::string text_copy(text);
-	size_t result_size = dedentn_inplace((char *) text_copy.data(), text_copy.size());
-	text_copy.resize(result_size);
-	return text_copy;
-}
-
-#ifdef __cpp_user_defined_literals
-std::string operator""_dedent(const char *ctext, size_t text_size) {
-	return dedent(ctext, text_size);
-}
-#endif // __cpp_user_defined_literals
-#ifdef __cpp_lib_string_view
-std::string dedent(std::string_view text) {
-	std::string text_copy(text);
-	size_t result_size = dedentn_inplace((char *) text_copy.data(), text_copy.size());
-	text_copy.resize(result_size);
-	return text_copy;
-}
-#endif // __cpp_lib_string_view
-#endif //  __cplusplus
-
-#endif // DEDENT_IMPLEMENTATION
