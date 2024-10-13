@@ -5,6 +5,7 @@ project(dedent C CXX)
 option(DEDENT_BUILD_TEST "Whether to build automated tests" OFF)
 
 add_library(dedent.h INTERFACE dedent.h)
+target_include_directories(dedent.h INTERFACE .)
 
 if (DEDENT_BUILD_TEST)
   add_executable(test tests/main.cpp)
