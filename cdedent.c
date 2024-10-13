@@ -47,7 +47,7 @@ static const char *__dedent_get_next_line_with_info(const char *text, size_t *co
 	return text;
 }
 
-void __dedent_copy_bytes(char *dest, const char *src, size_t size) {
+static void __dedent_copy_bytes(char *dest, const char *src, size_t size) {
 	if (dest != src) {
 		memmove(dest, src, size);
 	}

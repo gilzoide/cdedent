@@ -35,6 +35,8 @@
 std::string dedent(const char *ctext);
 std::string dedent(const char *ctext, size_t text_size);
 std::string dedent(const std::string& text);
+void dedent_inplace(std::string& text);
+
 #ifdef __cpp_user_defined_literals
 std::string operator""_dedent(const char *ctext, size_t text_size);
 #endif // __cpp_user_defined_literals

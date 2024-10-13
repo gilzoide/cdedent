@@ -37,9 +37,13 @@ std::string dedent(const char *ctext, size_t text_size) {
 
 std::string dedent(const std::string& text) {
 	std::string text_copy(text);
-	size_t result_size = dedentn_inplace((char *) text_copy.data(), text_copy.size());
-	text_copy.resize(result_size);
+	dedent_inplace(text_copy);
 	return text_copy;
+}
+
+void dedent_inplace(std::string& text) {
+	size_t result_size = dedentn_inplace((char *) text.data(), text.size());
+	text.resize(result_size);
 }
 
 #ifdef __cpp_user_defined_literals
@@ -51,8 +55,7 @@ std::string operator""_dedent(const char *ctext, size_t text_size) {
 #ifdef __cpp_lib_string_view
 std::string dedent(std::string_view text) {
 	std::string text_copy(text);
-	size_t result_size = dedentn_inplace((char *) text_copy.data(), text_copy.size());
-	text_copy.resize(result_size);
+	dedent_inplace(text_copy);
 	return text_copy;
 }
 #endif // __cpp_lib_string_view
