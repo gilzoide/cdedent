@@ -42,7 +42,7 @@ target_compile_features(cdedent PRIVATE cxx_std_17)
 ```
 
 
-## Building a library
+## Building the library
 ```sh
 # Build using CMake
 # In this example, we build a static library in Release mode
