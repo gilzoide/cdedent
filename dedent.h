@@ -104,7 +104,7 @@ const char *get_common_indentn(const char *text, size_t text_size, size_t *out_c
 		if (out_common_indent_size) {
 			*out_common_indent_size = '\0';
 		}
-		return 0;
+		return NULL;
 	}
 
 	const char *common_indent = NULL;
@@ -146,6 +146,7 @@ const char *get_common_indentn(const char *text, size_t text_size, size_t *out_c
 			common_indent_size = 0;
 		}
 		if (common_indent_size == 0) {
+			common_indent = NULL;
 			break;
 		}
 
