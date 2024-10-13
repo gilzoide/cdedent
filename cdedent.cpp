@@ -41,17 +41,6 @@ std::string dedent(const std::string& text) {
 	return text_copy;
 }
 
-void dedent_inplace(std::string& text) {
-	size_t result_size = dedentn_inplace((char *) text.data(), text.size());
-	text.resize(result_size);
-}
-
-#ifdef __cpp_user_defined_literals
-std::string operator""_dedent(const char *ctext, size_t text_size) {
-	return dedent(ctext, text_size);
-}
-#endif // __cpp_user_defined_literals
-
 #ifdef __cpp_lib_string_view
 std::string dedent(std::string_view text) {
 	std::string text_copy(text);
@@ -59,3 +48,14 @@ std::string dedent(std::string_view text) {
 	return text_copy;
 }
 #endif // __cpp_lib_string_view
+
+#ifdef __cpp_user_defined_literals
+std::string operator""_dedent(const char *ctext, size_t text_size) {
+	return dedent(ctext, text_size);
+}
+#endif // __cpp_user_defined_literals
+
+void dedent_inplace(std::string& text) {
+	size_t result_size = dedentn_inplace((char *) text.data(), text.size());
+	text.resize(result_size);
+}
